@@ -1,0 +1,23 @@
+{
+  "name": "pi-timeout-win",
+  "version": "0.1.0",
+  "description": "Make pi's bash timeouts work better on Windows.",
+  "type": "module",
+  "pi": {
+		"extensions": [
+			"./extensions/index.ts"
+		]
+	},
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hopenobug/pi-timeout-win"
+  },
+  "files": [
+    "extensions",
+    "README.md",
+    "LICENSE"
+  ],
+  "homepage": "https://github.com/hopenobug/pi-timeout-win#readme",
+  "author": "hopenobug"
+}
