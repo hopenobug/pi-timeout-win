@@ -39,12 +39,13 @@ the prefix.
 ## Configuration
 
 The extension reads the `piTimeoutWin` key in `~/.pi/agent/settings.json` when it
-loads. The file is read once at startup, so restart pi after changing it. The only
-setting is `commandPrefix`, the prefix prepended to every wrapped command:
+loads. The file is read once at startup, so restart pi after changing it. The
+available settings are:
 
 ```json
 {
   "piTimeoutWin": {
+    "enabled": true,
     "commandPrefix": "timeout -k 5s {timeout}s"
   }
 }
@@ -54,6 +55,9 @@ setting is `commandPrefix`, the prefix prepended to every wrapped command:
   seconds).
 - Default: `timeout -k 5s {timeout}s`. Override it to change the kill-after grace
   period (`-k 5s`) or to point at a different `timeout` binary.
+- `enabled`: set to `false` to disable the extension entirely — commands pass
+  through unwrapped and no other configuration is consulted. Useful for
+  temporarily turning the timeout off without uninstalling. Default: `true`.
 - If the file is missing, contains invalid JSON, or has no `piTimeoutWin` object, the
   default is used.
 
@@ -64,3 +68,4 @@ The command is passed through unwrapped when:
 
 - the platform is not Windows
 - the call has no `timeout`, or its value is not a positive number
+- the extension is disabled (`enabled: false` in settings)
