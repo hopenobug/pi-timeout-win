@@ -49,7 +49,7 @@ export default function (pi: ExtensionAPI) {
 			return undefined;
 		}
 
-		input.command = `${commandPrefix.replaceAll("{timeout}", String(t))} bash -c ${shellQuote(command)}`;
+		input.command = `${commandPrefix.replaceAll("{timeout}", String(t))} /usr/bin/bash -c ${shellQuote(command)}`;
 		return undefined;
 	});
 }

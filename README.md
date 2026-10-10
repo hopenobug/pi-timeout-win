@@ -21,13 +21,14 @@ This extension intercepts `bash` tool calls on the `tool_call` event and wraps t
 command with a configurable prefix (by default GNU coreutils' `timeout`):
 
 ```
-<commandPrefix> bash -c '<original command>'
+# use /usr/bin/bash to avoid using WSL bash
+<commandPrefix> /usr/bin/bash -c '<original command>'
 ```
 
 With the default `commandPrefix` of `timeout -k 5s <timeout>s`, this becomes:
 
 ```
-timeout -k 5s <timeout>s bash -c '<original command>'
+timeout -k 5s <timeout>s /usr/bin/bash -c '<original command>'
 ```
 
 `timeout` puts the spawned bash into its own process group and signals the whole group
