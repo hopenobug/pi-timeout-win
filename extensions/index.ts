@@ -8,6 +8,7 @@ const DEFAULT_COMMAND_PREFIX = "timeout -k 5s {timeout}s";
 
 interface Config {
 	commandPrefix?: string;
+	enabled?: boolean;
 }
 
 function loadConfig(): Config {
@@ -32,7 +33,10 @@ export function shellQuote(arg: string): string {
 
 export default function (pi: ExtensionAPI) {
 	if (process.platform != "win32") return;
+
 	const config = loadConfig();
+	if (typeof config.enabled === "boolean" && !config.enabled) return;
+
 	const commandPrefix = config.commandPrefix ?? DEFAULT_COMMAND_PREFIX;
 
 	pi.on("tool_call", (event, ctx): ToolCallEventResult | undefined => {
