@@ -4,7 +4,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const UNSAFE = /[^A-Za-z0-9_@%+=:,./-]/;
-const DEFAULT_COMMAND_PREFIX = "timeout -k 5s {timeout}s";
+const DEFAULT_COMMAND_PREFIX = "timeout -s KILL {timeout}s";
+// busybox sh has neither $BASH nor /usr/bin/bash, so fall back to whatever sh is on PATH
+const SHELL_LAUNCHER = '"${BASH:-sh}"';
 
 interface Config {
 	commandPrefix?: string;
@@ -53,7 +55,7 @@ export default function (pi: ExtensionAPI) {
 			return undefined;
 		}
 
-		input.command = `${commandPrefix.replaceAll("{timeout}", String(t))} /usr/bin/bash -c ${shellQuote(command)}`;
+		input.command = `${commandPrefix.replaceAll("{timeout}", String(t))} ${SHELL_LAUNCHER} -c ${shellQuote(command)}`;
 		return undefined;
 	});
 }

@@ -18,23 +18,31 @@ pi install git:github.com/hopenobug/pi-timeout-win
 ## How it works
 
 This extension intercepts `bash` tool calls on the `tool_call` event and wraps the
-command with a configurable prefix (by default GNU coreutils' `timeout`):
+command with a configurable prefix (by default `timeout`):
 
 ```
-# use /usr/bin/bash to avoid using WSL bash
-<commandPrefix> /usr/bin/bash -c '<original command>'
+<commandPrefix> "${BASH:-sh}" -c '<original command>'
 ```
 
-With the default `commandPrefix` of `timeout -k 5s <timeout>s`, this becomes:
+`${BASH:-sh}` is expanded by the shell pi already uses to run the command, so the
+wrapper never hardcodes a path:
+
+- Git Bash / MSYS2: `$BASH` is that shell's own bash, so a WSL `bash.exe` on `PATH` is
+  never picked up.
+- busybox-w32 `sh` (or any plain `sh`): there is no `$BASH` and no `/usr/bin/bash`, so
+  it falls back to the `sh` on `PATH` — the same shell pi would have used unwrapped.
+
+With the default `commandPrefix` of `timeout -s KILL <timeout>s`, this becomes:
 
 ```
-timeout -k 5s <timeout>s /usr/bin/bash -c '<original command>'
+timeout -s KILL <timeout>s "${BASH:-sh}" -c '<original command>'
 ```
 
-`timeout` puts the spawned bash into its own process group and signals the whole group
-on expiry, so parent and children are terminated together; `-k 5` sends `TERM` first
-and escalates to `KILL` after 5 seconds. See [Configuration](#configuration) to change
-the prefix.
+`timeout` puts the spawned shell into its own process group and signals the whole group
+on expiry, so parent and children are terminated together. `-s KILL` is used instead of
+GNU's `-k`: busybox's `timeout` applet has no `-k`, and on Windows a `TERM` grace period
+buys nothing since there is no graceful shutdown to wait for. See
+[Configuration](#configuration) to change the prefix.
 
 ## Configuration
 
@@ -46,15 +54,18 @@ available settings are:
 {
   "piTimeoutWin": {
     "enabled": true,
-    "commandPrefix": "timeout -k 5s {timeout}s"
+    "commandPrefix": "timeout -s KILL {timeout}s"
   }
 }
 ```
 
 - Every `{timeout}` in the prefix is replaced with the bash tool call's `timeout` (in
   seconds).
-- Default: `timeout -k 5s {timeout}s`. Override it to change the kill-after grace
-  period (`-k 5s`) or to point at a different `timeout` binary.
+- Default: `timeout -s KILL {timeout}s`. Override it to point at a different `timeout`
+  binary, or to use GNU coreutils' `-k 5s` / plain `-s TERM` variants if you prefer a
+  grace period.
+- If `timeout` is not available at all, set `commandPrefix` to `""` — the command is
+  still run through the detected shell, just without a timeout wrapper.
 - `enabled`: set to `false` to disable the extension entirely — commands pass
   through unwrapped and no other configuration is consulted. Useful for
   temporarily turning the timeout off without uninstalling. Default: `true`.
