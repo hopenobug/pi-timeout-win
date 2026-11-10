@@ -18,7 +18,7 @@ pi install git:github.com/hopenobug/pi-timeout-win
 ## How it works
 
 This extension intercepts `bash` tool calls on the `tool_call` event and wraps the
-command with a configurable prefix (by default `timeout`):
+command with a configurable prefix (by default `timeout -s KILL {timeout}s`):
 
 ```
 <commandPrefix> "${BASH:-sh}" -c '<original command>'
@@ -39,8 +39,10 @@ timeout -s KILL <timeout>s "${BASH:-sh}" -c '<original command>'
 ```
 
 To guarantee the shell is killed before pi reports a tool timeout, the extension also
-adds 3 seconds to the call's `timeout` value, so the inner `timeout` fires first and
-cleanly aborts the whole process group instead of a taskkill from pi.
+raises the call's own `timeout` by 3 seconds, so the inner `timeout` fires first and
+cleanly aborts the whole process group instead of a taskkill from pi. Note that
+`{timeout}` in the prefix still expands to the *original* value — only the value pi
+enforces is bumped.
 
 `timeout` puts the spawned shell into its own process group and signals the whole group
 on expiry, so parent and children are terminated together. `-s KILL` is used instead of
@@ -63,8 +65,8 @@ available settings are:
 }
 ```
 
-- Every `{timeout}` in the prefix is replaced with the bash tool call's `timeout` (in
-  seconds).
+- Every `{timeout}` in the prefix is replaced with the bash tool call's original
+  `timeout` (in seconds) — before the 3-second bump described above.
 - Default: `timeout -s KILL {timeout}s`. Override it to point at a different `timeout`
   binary, or to use GNU coreutils' `-k 5s` / plain `-s TERM` variants if you prefer a
   grace period.
@@ -82,5 +84,8 @@ available settings are:
 The command is passed through unwrapped when:
 
 - the platform is not Windows
+- the call has no `command`, or it is not a string
 - the call has no `timeout`, or its value is not a positive number
 - the extension is disabled (`enabled: false` in settings)
+
+In these cases neither the wrapper nor the 3-second bump is applied.
