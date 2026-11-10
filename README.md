@@ -38,6 +38,10 @@ With the default `commandPrefix` of `timeout -s KILL <timeout>s`, this becomes:
 timeout -s KILL <timeout>s "${BASH:-sh}" -c '<original command>'
 ```
 
+To guarantee the shell is killed before pi reports a tool timeout, the extension also
+adds 3 seconds to the call's `timeout` value, so the inner `timeout` fires first and
+cleanly aborts the whole process group instead of a taskkill from pi.
+
 `timeout` puts the spawned shell into its own process group and signals the whole group
 on expiry, so parent and children are terminated together. `-s KILL` is used instead of
 GNU's `-k`: busybox's `timeout` applet has no `-k`, and on Windows a `TERM` grace period
