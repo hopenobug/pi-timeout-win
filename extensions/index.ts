@@ -56,6 +56,7 @@ export default function (pi: ExtensionAPI) {
 		}
 
 		input.command = `${commandPrefix.replaceAll("{timeout}", String(t))} ${SHELL_LAUNCHER} -c ${shellQuote(command)}`;
+		input.timeout += 3;
 		return undefined;
 	});
 }
